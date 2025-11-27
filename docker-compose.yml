@@ -37,7 +37,6 @@ services:
     volumes:
       - shared_logs:/logs:ro
       - ./sample_logs:/sample_logs:ro
-      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
     stdin_open: true
     tty: true
     networks:
@@ -132,3 +131,4 @@ networks:
     external: true
 
     name: log_ad_network
+
