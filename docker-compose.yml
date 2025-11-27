@@ -1,0 +1,119 @@
+services:
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: incident_db
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user123 -d security_inc"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+    networks:
+      - log_network
+      
+  filebeat:
+    build:
+      context: ./filebeat
+      dockerfile: dockerfile
+    container_name: test-filebeat
+    user: root
+    env_file:
+      - .env
+    environment:
+      - SYSTEM_LOGS_ENABLED=${SYSTEM_LOGS_ENABLED}
+      - SYSTEM_LOG_PATH=${SYSTEM_LOG_PATH}
+      - SYSTEM_SOURCE_HOST=${SYSTEM_SOURCE_HOST}
+      - WEB_LOGS_ENABLED=${WEB_LOGS_ENABLED}
+      - WEB_LOG_PATH=${WEB_LOG_PATH}
+      - WEB_SOURCE_HOST=${WEB_SOURCE_HOST}
+    volumes:
+      - ./sample_logs:/sample_logs:ro
+      - ./logs:/logs
+      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+    stdin_open: true
+    tty: true
+    networks:
+      - log_network
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: detector-ollama
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        # Start Ollama server in background
+        ollama serve &
+      
+        # Wait for server to be ready
+        sleep 5
+      
+        # Pull model if not already present
+        ollama pull llama3.2:latest
+      
+        # Keep container running
+        wait
+    networks:
+      - log_network
+
+  log_detector:
+    build:
+      context: ./log_detector
+      dockerfile: dockerfile
+    container_name: log_detector
+    env_file:
+      - .env
+    volumes:
+      - ./logs:/logs:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+    networks:
+      - log_network
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./api
+      dockerfile: dockerfile
+    container_name: db-api
+    env_file:
+      - .env
+    ports:
+      - "${API_PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - log_network
+    restart: unless-stopped
+
+volumes:
+  shared_logs:
+    external: true
+    name: log_ad_shared_logs
+  postgres_data:
+  ollama_data:
+
+networks:
+  log_network:
+    external: true
+    name: log_ad_network
