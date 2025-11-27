@@ -10,7 +10,7 @@ import os
 from database import db
 
 app = FastAPI(
-    title = "Red Flags API"
+    title = "Red Flags API",
     description = "REST API for querying security incidents detected by the detection tool",
     version = "1.0.0",
     docs_url = "/docs",
@@ -153,3 +153,4 @@ async def shutdown_event():
     db.close()
 
 # Run with: uvicorn main:app --host 0.0.0.0 --port 8000
+
