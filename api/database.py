@@ -14,7 +14,7 @@ class Database:
             password = os.getenv("POSTGRES_PASSWORD", "password123"),
             cursor_factory = RealDictCursor
         )
-        print(f"API connected to PostgreSQL: {os.getenv("POSTGRES_DB")}")
+        print(f"API connected to PostgreSQL: {os.getenv('POSTGRES_DB')}")
 
     def get_incidents(
             self,
@@ -167,3 +167,4 @@ class Database:
             print("API database connection closed")
 
 db = Database()
+
