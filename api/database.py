@@ -25,7 +25,7 @@ class Database:
             source_host: Optional[str] = None,
             date_from: Optional[datetime] = None,
             date_to: Optional[datetime] = None
-    )
+    ):
         
         # Query builder
         query = "SELECT * FROM security_incidents WHERE 1=1"
@@ -167,4 +167,5 @@ class Database:
             print("API database connection closed")
 
 db = Database()
+
 
