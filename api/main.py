@@ -98,6 +98,13 @@ async def get_incident(
 
         if not incident:
             raise HTTPException(status_code = 404, detail = f"Database error: {str(e)}")
+
+        return incident
+
+    except HTTPException:
+        raise
+    except Exception as e:  # ← Missing except block!
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
         
 @app.get("/statistics")
 @limiter.limit("100/minute")
@@ -153,4 +160,5 @@ async def shutdown_event():
     db.close()
 
 # Run with: uvicorn main:app --host 0.0.0.0 --port 8000
+
 
