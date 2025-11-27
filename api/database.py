@@ -58,6 +58,7 @@ class Database:
         query += " LIMIT %s OFFSET %s"
         params.extend([limit, offset])
 
+        cursor = self.conn.cursor()
         cursor.execute(query, params)
         results = cursor.fetchall()
         cursor.close()
@@ -167,5 +168,6 @@ class Database:
             print("API database connection closed")
 
 db = Database()
+
 
 
