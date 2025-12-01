@@ -89,7 +89,7 @@ services:
       OLLAMA_HOST: "http://${OLLAMA_HOST:-detector-ollama}:${OLLAMA_PORT:-11434}"
       OLLAMA_PORT: ${OLLAMA_PORT:-11434} 
     volumes:
-      - shared_logs:/logs:ro
+      - aggregated_logs:/aggregated_logs:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -125,6 +125,9 @@ volumes:
   shared_logs:
     external: true
     name: log_ad_shared_logs
+  aggregated_logs:
+    external: true
+    name: log_ad_aggregated_logs
   postgres_data:
   ollama_data:
 
@@ -132,6 +135,7 @@ networks:
   log_network:
     external: true
     name: log_ad_network
+
 
 
 
