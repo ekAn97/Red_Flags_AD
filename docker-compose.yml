@@ -35,7 +35,7 @@ services:
       WEB_LOG_PATH: ${WEB_LOG_PATH:-/logs/web.log}
       WEB_SOURCE_HOST: ${WEB_SOURCE_HOST:-webserver}
     volumes:
-      - shared_logs:/logs:ro
+      - shared_logs:/logs
       - ./sample_logs:/sample_logs:ro
     stdin_open: true
     tty: true
@@ -131,6 +131,7 @@ networks:
   log_network:
     external: true
     name: log_ad_network
+
 
 
 
