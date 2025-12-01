@@ -1,7 +1,9 @@
 services:
 
   postgres:
-    image: postgres:15-alpine
+    build:
+      context: ./postgres
+      dockerfile: dockerfile
     container_name: incident_db
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-user123}
@@ -9,7 +11,6 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-security_inc}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     healthcheck:
@@ -135,6 +136,7 @@ networks:
   log_network:
     external: true
     name: log_ad_network
+
 
 
 
