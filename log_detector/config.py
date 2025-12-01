@@ -1,7 +1,9 @@
 import os
 
 # ====================== Ollama Configuration ========================= #
-OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://detector-ollama:11434")
+OLLAMA_HOST_NAME = os.getenv("OLLAMA_HOST", "detector-ollama")
+OLLAMA_PORT = os.getenv("OLLAMA_PORT", "11434")
+OLLAMA_HOST = f"http://{OLLAMA_HOST_NAME}:{OLLAMA_PORT}"
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2:latest")
 OLLAMA_TIMEOUT = int(os.getenv("OLLAMA_TIMEOUT", "60"))
 OLLAMA_TEMPERATURE = float(os.getenv('OLLAMA_TEMPERATURE', '0.1'))
@@ -96,4 +98,5 @@ def get_prompt_for_log_type(log_type: str) -> str:
         'system': SYSTEM_LOG_PROMPT,
         'web': WEB_LOG_PROMPT,
     }
+
     return prompts.get(log_type, SYSTEM_LOG_PROMPT)
