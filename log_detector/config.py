@@ -14,7 +14,9 @@ POSTGRES_USER = os.getenv('POSTGRES_USER', 'user123')
 POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD', 'password123')
 
 # ==================== Log Preprocessing Configuration ================== #
-LOG_DIR = os.getenv('LOG_DIR', '/logs')
+LOG_DIR = os.getenv('LOG_INPUT_PATH', '/aggregated_logs')
+LOG_INPUT_PATH = os.getenv('LOG_INPUT_PATH', '/aggregated_logs')
+LOG_FILENAME = os.getenv('LOG_FILENAME','aggregated-20251201-9.ndjson') 
 POLL_INTERVAL = int(os.getenv('POLL_INTERVAL', '10'))  # seconds
 RATE_LIMIT_DELAY = float(os.getenv('RATE_LIMIT_DELAY', '1.0'))  # seconds between analyses
 
@@ -98,4 +100,5 @@ def get_prompt_for_log_type(log_type: str) -> str:
     }
 
     return prompts.get(log_type, SYSTEM_LOG_PROMPT)
+
 
