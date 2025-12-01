@@ -24,7 +24,7 @@ filebeat.inputs:
   multiline.match: after
 
 output.file:
-  path: "/logs"
+  path: "/aggregated_logs"
   filename: aggregated
   rotate_every_kb: 10240  # Rotate when file reaches 10MB
   number_of_files: 5       # Keep 5 rotated files
@@ -36,5 +36,6 @@ output.file:
   codec.json:
     pretty: false
     escape_html: false
+
 
 name: log-aggregator
