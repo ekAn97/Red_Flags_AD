@@ -37,6 +37,7 @@ services:
     volumes:
       - shared_logs:/logs
       - ./sample_logs:/sample_logs:ro
+      - aggregated_logs:/aggregated_logs
     stdin_open: true
     tty: true
     networks:
@@ -131,6 +132,7 @@ networks:
   log_network:
     external: true
     name: log_ad_network
+
 
 
 
