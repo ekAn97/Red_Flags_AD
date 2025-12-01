@@ -85,7 +85,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB:-security_inc}
       POSTGRES_HOST: ${POSTGRES_HOST:-postgres}
-      OLLAMA_HOST: ${OLLAMA_HOST:-ollama}
+      OLLAMA_HOST: "http://${OLLAMA_HOST:-detector-ollama}:${OLLAMA_PORT:-11434}"
       OLLAMA_PORT: ${OLLAMA_PORT:-11434} 
     volumes:
       - shared_logs:/logs:ro
@@ -131,6 +131,7 @@ networks:
   log_network:
     external: true
     name: log_ad_network
+
 
 
 
