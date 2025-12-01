@@ -12,7 +12,7 @@ def wait_for_ollama():
 
     for attempt in range(60):
         try:
-            response = requests.get(f"{config.OLLAMA_HOST}/api/tags", timeout=5)
+            response = requests.get(f"http://192.168.6.123:6871/api/tags", timeout=5)
             if response.status_code == 200:
                 models = response.json().get('models', [])
                 if any(config.OLLAMA_MODEL in m['name'] for m in models):
@@ -145,4 +145,5 @@ def main():
         print("Shutdown complete")
 
 if __name__ == "__main__":
+
     main()
