@@ -17,8 +17,9 @@ EXPOSE ${API_PORT:-8000}
 # Run FastAPI with uvicorn
 
 CMD uvicorn main:app \
-    --host 192.168.6.123 \
+    --host 0.0.0.0 \
     --port ${API_PORT:-8000} \
     --workers ${API_WORKERS:-1}
+
 
 
