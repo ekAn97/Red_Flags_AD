@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 
 from database import db
+from drain_analysis import drain_analyzer
 
 app = FastAPI(
     title = "Red Flags API",
@@ -38,12 +39,12 @@ app.state.Limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # API key authentication
-API_KEY = os.getenv("API_KEY", None)
+#API_KEY = os.getenv("API_KEY", None)
 
-def verify_api_key(x_api_key):
-    if API_KEY and x_api_key != API_KEY:
-        raise HTTPException(status_code = 401, detail = "Invalid or missing API key")
-    return True
+#def verify_api_key(x_api_key):
+#    if API_KEY and x_api_key != API_KEY:
+#        raise HTTPException(status_code = 401, detail = "Invalid or missing API key")
+#    return True
 
 @app.get("/")
 @limiter.limit("100/minute")
@@ -68,9 +69,8 @@ async def list_incidents(
     severity: Optional[str] = Query(None, description = "Filter by severity (CRITICAL, HIGH, MEDIUM, LOW, INFO)"),
     log_type: Optional[str] = Query(None, description="Filter by log type (system, web, application)"),
     source_host: Optional[str] = Query(None, description="Filter by source host"),
-    hours: Optional[int] = Query(None, description="Last N hours (e.g., 24)"),
-    authenticated: bool = Depends(verify_api_key)
-):
+    hours: Optional[int] = Query(None, description="Last N hours (e.g., 24)")
+    ):
     try:
         # Date range if hours is provided
         date_from = None
@@ -105,8 +105,7 @@ async def list_incidents(
 @limiter.limit("100/minute")
 async def get_incident(
     request: Request,
-    incident_id: int,
-    authenticated: bool = Depends(verify_api_key)
+    incident_id: int
 ):
     try:
         incident = db.get_single_incident(incident_id)
@@ -124,8 +123,7 @@ async def get_incident(
 @app.get("/statistics")
 @limiter.limit("100/minute")
 async def get_statistics(
-    request: Request,
-    authenticated: bool = Depends(verify_api_key)
+    request: Request
 ):
     try:
         stats = db.get_stats()
@@ -138,8 +136,7 @@ async def get_statistics(
 @limiter.limit("100/minute")
 async def search_by_ip(
     request: Request,
-    ip_address: str,
-    authenticated: bool = Depends(verify_api_key)
+    ip_address: str
 ):
     try:
         incidents = db.search_by_ip(ip_address)
@@ -156,8 +153,7 @@ async def search_by_ip(
 @limiter.limit("100/minute")
 async def get_recent_incidents(
     request: Request,
-    hours: int = Query(24, ge=1, le=168, description = "Number of hours to look back (max 168 = 1 week)"),
-    authenticated: bool = Depends(verify_api_key)
+    hours: int = Query(24, ge=1, le=168, description = "Number of hours to look back (max 168 = 1 week)")
 ):
     try:
         incidents = db.get_recent(hours = hours)
@@ -169,6 +165,59 @@ async def get_recent_incidents(
         }
     except Exception as e:
         raise HTTPException(status_code = 500, detail = f"Database error: {str(e)}")
+    
+@app.post("/analyze/templates")
+@limiter.limit("100/minute")
+async def extract_attack_patterns(
+    request: Request,
+    hours: int = Query(4, ge=1, le=168, description = "Hourse to analyze"),
+    log_type: Optional[str] = Query(None, description="Filter by log type (system/web)"),
+    severity: Optional[str] = Query(None, description="Filter by severity (CRITICAL/HIGH/MEDIUM/LOW/INFO)")
+):
+    """
+    Extract templates for security incidents using the Drain3 parser
+
+    **Purpose**: Identify attack patterns over time
+    **Use case**: Dashboard button "Analyze Attack Patterns"
+
+    **Example requests**:
+    - POST /analyze/templates?hours=4
+    - POST /analyze/templates?hours=24&severity=HIGH
+    - POST /analyze/templates?hours=4&log_type=system
+    """
+    try:
+        logs = db.get_incidents_by_timerange(
+            hours = hours,
+            log_type = log_type,
+            severity = severity
+        )
+        if not logs:
+            return {
+                "message": "No security incidents found in specified time range",
+                "total_logs_processed": 0,
+                "total_templates": 0,
+                "time_range_hours": hours,
+                "filters": {
+                    "log_type": log_type,
+                    "severity": severity
+                },
+                "templates": []
+            }
+        results = drain_analyzer.extract_templates(logs)
+
+        results["time_range_hours"] = hours
+        results["filters"] = {
+            "log_type": log_type,
+            "severity": severity
+        }
+
+        return results
+    
+    except Exception as e:
+        raise HTTPException(
+            status_code = 500,
+            detail = f"Template extraction failed: {str(e)}"
+        )
     
 @app.on_event("shutdown")
 async def shutdown_event():
