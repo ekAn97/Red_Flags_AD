@@ -65,6 +65,37 @@ class Database:
 
         return results
     
+    def get_incidents_by_timerange(
+            self,
+            hours: int = 2,
+            log_type: Optional[str] = None,
+            severity: Optional[str] = None
+    ):
+        cursor = self.conn.cursor()
+
+        query = """
+            SELECT id, raw_log_message, severity, log_type, created_at
+            FROM security_incidents
+            WHERE created_at >= NOW() - INTERVAL '%s hours'
+            """
+        params = [hours]
+
+        if log_type:
+            query += " AND log_type = %s"
+            params.append(log_type)
+
+        if severity:
+            query += " AND severity = %s"
+            params.append(severity)
+        
+        query += " ORDER BY created_at ASC"
+
+        cursor.execute(query, params)
+        results = cursor.fetchall()
+        cursor.close()
+
+        return results
+    
     def get_single_incident(self, incident_id: int):
         cursor = self.conn.cursor()
         cursor.execute(
