@@ -20,7 +20,7 @@ class DrainAnalyzer:
 
         for log_entry in logs:
             raw_log = log_entry.get("raw_log_message", "")
-            parsed_message = parser.parse(log_entry)
+            parsed_message = parser.parse(raw_log)
             semantic_part = parsed_message.original_msg
             result = self.template_miner.add_log_message(semantic_part)
 
