@@ -3,6 +3,8 @@ from drain3.template_miner_config import TemplateMinerConfig
 from typing import List, Dict, Any
 import os
 
+import log_parser
+
 class DrainAnalyzer:
     def __init__(self, config_file: str = "drain3.ini"):
         self.config_file = config_file
@@ -14,10 +16,13 @@ class DrainAnalyzer:
 
     def extract_templates(self, logs):
         template_stats = {}
+        parser = log_parser.LogParser()
 
         for log_entry in logs:
             raw_log = log_entry.get("raw_log_message", "")
-            result = self.template_miner.add_log_message(raw_log)
+            parsed_message = parser.parse(log_entry)
+            semantic_part = parsed_message.original_msg
+            result = self.template_miner.add_log_message(semantic_part)
 
             template_id = result["cluster_id"]
             if template_id not in template_stats:
