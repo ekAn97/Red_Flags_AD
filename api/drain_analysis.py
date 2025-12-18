@@ -3,7 +3,7 @@ from drain3.template_miner_config import TemplateMinerConfig
 from typing import List, Dict, Any
 import os
 
-import log_parser
+from log_parser import ParsedLog, LogParser
 
 class DrainAnalyzer:
     def __init__(self, config_file: str = "drain3.ini"):
@@ -16,7 +16,7 @@ class DrainAnalyzer:
 
     def extract_templates(self, logs):
         template_stats = {}
-        parser = log_parser.LogParser()
+        parser = LogParser()
 
         for log_entry in logs:
             raw_log = log_entry.get("raw_log_message", "")
