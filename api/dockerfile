@@ -11,6 +11,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY database.py .
 COPY drain_analysis.py .
 COPY drain3.ini .
+COPY log_parser.py .
 COPY main.py .
 
 # Expose port
