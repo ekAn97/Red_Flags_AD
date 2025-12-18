@@ -170,7 +170,7 @@ async def get_recent_incidents(
 @limiter.limit("100/minute")
 async def extract_attack_patterns(
     request: Request,
-    hours: int = Query(4, ge=1, le=168, description = "Hourse to analyze"),
+    hours: int = Query(4, ge=1, le=168, description = "Hours to analyze"),
     log_type: Optional[str] = Query(None, description="Filter by log type (system/web)"),
     severity: Optional[str] = Query(None, description="Filter by severity (CRITICAL/HIGH/MEDIUM/LOW/INFO)")
 ):
