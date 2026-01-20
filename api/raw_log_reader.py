@@ -123,4 +123,4 @@ class RawLogReader:
             }
         }
 
- raw_log_reader = RawLogReader()   
+raw_log_reader = RawLogReader()   
