@@ -123,5 +123,5 @@ class RawLogReader:
             }
         }
 
-LOG_DIR = os.getenv("LOG_INPUT_PATH", None)
+LOG_DIR = os.getenv("LOG_INPUT_PATH", "s"")
 raw_log_reader = RawLogReader(LOG_DIR)   
