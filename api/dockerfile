@@ -12,7 +12,7 @@ COPY database.py .
 COPY drain_analysis.py .
 COPY drain3.ini .
 COPY log_parser.py .
-COPY raw_log_reader.py
+COPY raw_log_reader.py .
 COPY main.py .
 
 # Expose port
