@@ -41,7 +41,7 @@ class RawLogReader:
             chunk = f.read(offset)
 
             text = chunk.decode("utf-8", errors = "ignore")
-            raw_lines = text.splot("\n")
+            raw_lines = text.split("\n")
 
             if offset < file_size:
                 raw_lines = raw_lines[1:]
@@ -123,5 +123,5 @@ class RawLogReader:
             }
         }
 
-LOG_DIR = os.getenv("LOG_INPUT_PATH", "s")
+LOG_DIR = os.getenv("LOG_INPUT_PATH", "/aggregated_logs")
 raw_log_reader = RawLogReader(LOG_DIR)   
