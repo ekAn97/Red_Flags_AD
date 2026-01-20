@@ -10,6 +10,7 @@ import os
 
 from database import db
 from drain_analysis import drain_analyzer
+from raw_log_reader import raw_log_reader
 
 app = FastAPI(
     title = "Red Flags API",
@@ -59,6 +60,48 @@ async def root(request):
             "statistics": "/statistics"
         }
     }
+
+@app.get("/raw-logs/recent")
+@limiter.limit("100/minute")
+async def get_recent_raw_logs(
+    request: Request,
+    n: int = Query(100, ge=1, le=1000, description="Number of recent logs to return (max 1000)"),
+    log_type: Optional[str] = Query(None, description="Filter by log type (e.g. system logs, web logs)"),
+    source_host: Optional[str] = Query(None, description="Filter by source host")
+):
+    try:
+        result = raw_log_reader.get_recent_logs(
+            n = n,
+            log_type = log_type,
+            source_host = source_host
+        )
+
+        result["filters"] = {
+            "n": n,
+            "log_type": log_type,
+            "source_host": source_host
+        }
+
+        return result
+
+    except Exception as e:
+        raise HTTPException(
+            status_code = 500,
+            detail = f"Failed to read raw logs: {str(e)}"
+        )
+    
+@app.get("/raw-logs/stats")
+@limiter.limit("100/minute")
+async def get_raw_log_stats(request: Request):
+    try:
+        stats = raw_log_reader.get_statistics()
+        return stats
+    except Exception as e:
+        raise HTTPException(
+            status_code = 500,
+            detail = f"Failed to get log statistics: {str(e)}"
+        )
+
 
 @app.get("/incidents")
 @limiter.limit("100/minute")
