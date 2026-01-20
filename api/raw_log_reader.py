@@ -123,4 +123,5 @@ class RawLogReader:
             }
         }
 
-raw_log_reader = RawLogReader()   
+LOG_DIR = os.getenv("LOG_DIR", None)
+raw_log_reader = RawLogReader(LOG_DIR)   
