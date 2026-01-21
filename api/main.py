@@ -166,10 +166,11 @@ async def get_incident(
 @app.get("/statistics")
 @limiter.limit("100/minute")
 async def get_statistics(
-    request: Request
+    request: Request,
+    hours: int = Query(24, ge=0, le=8760, description = "Time range in hours (0 for all-time, max 8760 = 1 year)")
 ):
     try:
-        stats = db.get_stats()
+        stats = db.get_stats(hours=hours)
         return stats
     except Exception as e:
         raise HTTPException(status_code = 500, detail = f"Database error: {str(e)}")
