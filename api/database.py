@@ -107,7 +107,7 @@ class Database:
 
         return result
     
-    def get_stats(self):
+    def get_stats(self, hours: int = 24):
         cursor = self.conn.cursor()
 
         cursor.execute("SELECT COUNT(*) as total FROM security_incidents")
@@ -138,13 +138,18 @@ class Database:
         """)
         by_log_type = {row["log_type"]: row["count"] for row in cursor.fetchall()}
 
-        # Gather logs of last 24 hours
-        cursor.execute("""
+        # Gather logs of last N hours
+        if hours and hours > 0:
+            cursor.execute("""
                 SELECT COUNT(*) as count
                 FROM security_incidents
-                WHERE created_at >= NOW() - INTERVAL '24 hours'
-        """)
-        last_24h = cursor.fetchone()["count"]
+                WHERE created_at >= NOW() - INTERVAL '%s hours'
+            """, (hours,))
+            last_24h = cursor.fetchone()["count"]
+            last_24_key = f"last_{hours}h"
+        else:
+            last_24h = total
+            last_24_key = "all_time"
 
         # Top source hosts
         cursor.execute("""
@@ -165,7 +170,7 @@ class Database:
             "total_incidents": total,
             "by_severity": by_severity,
             "by_log_type": by_log_type,
-            "last_24h": last_24h,
+            last_24_key: last_24h,
             "top_source_hosts": top_hosts
         }
     
