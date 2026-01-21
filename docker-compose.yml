@@ -6,13 +6,13 @@ services:
       dockerfile: dockerfile
     container_name: incident_db
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-user123}
+      POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB:-security_inc}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "${POSTGRES_PORT}:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U user123 -d security_inc"]
       interval: 20s
@@ -29,12 +29,12 @@ services:
     container_name: test-filebeat
     user: root
     environment:
-      SYSTEM_LOGS_ENABLED: ${SYSTEM_LOGS_ENABLED:-true}
-      SYSTEM_LOG_PATH: ${SYSTEM_LOG_PATH:-/logs/linux_logs.log}
-      SYSTEM_SOURCE_HOST: ${SYSTEM_SOURCE_HOST:-log-generator}
-      WEB_LOGS_ENABLED: ${WEB_LOGS_ENABLED:-false}
-      WEB_LOG_PATH: ${WEB_LOG_PATH:-/logs/web.log}
-      WEB_SOURCE_HOST: ${WEB_SOURCE_HOST:-webserver}
+      SYSTEM_LOGS_ENABLED: ${SYSTEM_LOGS_ENABLED}
+      SYSTEM_LOG_PATH: ${SYSTEM_LOG_PATH}
+      SYSTEM_SOURCE_HOST: ${SYSTEM_SOURCE_HOST}
+      WEB_LOGS_ENABLED: ${WEB_LOGS_ENABLED}
+      WEB_LOG_PATH: ${WEB_LOG_PATH}
+      WEB_SOURCE_HOST: ${WEB_SOURCE_HOST}
     volumes:
       - shared_logs:/logs
       - ./sample_logs:/sample_logs:ro
@@ -50,7 +50,7 @@ services:
     volumes:
       - ollama_data:/root/.ollama
     ports:
-      - "${OLLAMA_PORT:-11434}:11434"
+      - "${OLLAMA_PORT}:11434"
     healthcheck:
       test: ["CMD", "ollama", "list"]
       interval: 30s
@@ -80,15 +80,15 @@ services:
       dockerfile: dockerfile
     container_name: log_detector
     environment:
-      LOG_INPUT_PATH: ${LOG_INPUT_PATH:-/logs}
-      LOG_FILENAME: ${LOG_FILENAME:-linux_logs.log}
-      DETECTION_THRESHOLD: ${DETECTION_THRESHOLD:-0.85}
-      POSTGRES_USER: ${POSTGRES_USER:-user123}
+      LOG_INPUT_PATH: ${LOG_INPUT_PATH}
+      LOG_FILENAME: ${LOG_FILENAME}
+      DETECTION_THRESHOLD: ${DETECTION_THRESHOLD}
+      POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB:-security_inc}
-      POSTGRES_HOST: ${POSTGRES_HOST:-postgres}
-      OLLAMA_HOST: "http://${OLLAMA_HOST:-detector-ollama}:${OLLAMA_PORT:-11434}"
-      OLLAMA_PORT: ${OLLAMA_PORT:-11434} 
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      OLLAMA_HOST: "http://${OLLAMA_HOST}:${OLLAMA_PORT}"
+      OLLAMA_PORT: ${OLLAMA_PORT} 
     volumes:
       - aggregated_logs:/aggregated_logs:ro
     depends_on:
@@ -106,17 +106,17 @@ services:
       dockerfile: dockerfile
     container_name: db-api
     environment:
-      API_PORT: ${API_PORT:-8000}
-      API_HOST: ${API_HOST:-0.0.0.0}
-      POSTGRES_USER: ${POSTGRES_USER:-user123}
+      API_PORT: ${API_PORT}
+      API_HOST: ${API_HOST}
+      POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB:-security_inc}
-      POSTGRES_HOST: ${POSTGRES_HOST:-postgres}
-      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
     volumes:
       - aggregated_logs:/aggregated_logs:ro
     ports:
-      - "${API_PORT:-8000}:${API_PORT:-8000}"
+      - "${API_PORT}:${API_PORT}"
     depends_on:
       postgres:
         condition: service_healthy
