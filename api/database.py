@@ -113,10 +113,27 @@ class Database:
         cursor.execute("SELECT COUNT(*) as total FROM security_incidents")
         total = cursor.fetchone()["total"]
 
+        if hours and hours > 0:
+            time_filter = "WHERE created_at >= NOW() - INTERVAL '%s hours'" % hours
+            time_params = (hours, )
+            time_range_key = f"last_{hours}h"
+        else:
+            time_filter = ""
+            time_params = ()
+            time_range_key = "all_time"
+
+        query = f"SELECT COUNT(*) as total FROM security_incidents {time_filter}"
+        if time_params:
+            cursor.execute(query, time_params)
+        else:
+            cursor.execute(query)
+        total = cursor.fetchone()["total"]
+
         # Filter by assigned severity
-        cursor.execute("""
+        query = f"""
             SELECT severity, COUNT(*) as count
             FROM security_incidents
+            {time_filter}
             GROUP BY severity
             ORDER BY
                 CASE severity
@@ -127,38 +144,39 @@ class Database:
                     WHEN 'INFO' THEN 5
                     ELSE 6
                 END   
-        """)
+        """
+        if time_params:
+            cursor.execute(query, time_params)
+        else:
+            cursor.execute(query)
         by_severity = {row["severity"]: row["count"] for row in cursor.fetchall()}
 
         # Filter by log type
-        cursor.execute("""
-                SELECT log_type, COUNT(*) as count
-                FROM security_incidents
-                GROUP BY log_type
-        """)
-        by_log_type = {row["log_type"]: row["count"] for row in cursor.fetchall()}
-
-        # Gather logs of last N hours
-        if hours and hours > 0:
-            cursor.execute("""
-                SELECT COUNT(*) as count
-                FROM security_incidents
-                WHERE created_at >= NOW() - INTERVAL '%s hours'
-            """, (hours,))
-            last_24h = cursor.fetchone()["count"]
-            last_24_key = f"last_{hours}h"
+        query = f"""
+            SELECT log_type, COUNT(*) as count
+            FROM security_incidents
+            {time_filter}
+            GROUP BY log_type
+        """
+        if time_params:
+            cursor.execute(query, time_params)
         else:
-            last_24h = total
-            last_24_key = "all_time"
-
+            cursor.execute(query)
+        by_log_type = {row["log_type"]: row["count"] for row in cursor.fetchall()}
+        
         # Top source hosts
-        cursor.execute("""
-                SELECT source_host, COUNT(*) as count
-                FROM security_incidents
-                GROUP BY source_host
-                ORDER BY count DESC
-                LIMIT 5
-        """)
+        query = f"""
+            SELECT source_host, COUNT(*) as count
+            FROM security_incidents
+            {time_filter}
+            GROUP BY source_host
+            ORDER BY count DESC
+            LIMIT 5
+        """
+        if time_params:
+            cursor.execute(query, time_params)
+        else:
+            cursor.execute(query)
         top_hosts = [
             {"host": row["source_host"], "count": row["count"]}
             for row in cursor.fetchall()
@@ -170,7 +188,7 @@ class Database:
             "total_incidents": total,
             "by_severity": by_severity,
             "by_log_type": by_log_type,
-            last_24_key: last_24h,
+            "time_range_hours": hours if hours else None,
             "top_source_hosts": top_hosts
         }
     
