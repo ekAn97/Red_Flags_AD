@@ -117,8 +117,7 @@ class Database:
         params = []
 
         if hours and hours > 0:
-            where_clauses.append("created_at >= NOW() - INTERVAL %s")
-            params.append(f"{hours} hours")
+            where_clauses.append(f"created_at >= NOW() - INTERVAL '{hours} hours'")
 
         if log_type:
             where_clauses.append("log_type = %s")
