@@ -171,8 +171,7 @@ async def get_statistics(
 ):
     try:
         stats = db.get_stats(
-            hours=hours,
-            log_type=log_type
+            hours=hours
         )
         return stats
     except Exception as e:
