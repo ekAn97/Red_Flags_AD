@@ -107,76 +107,67 @@ class Database:
 
         return result
     
-    def get_stats(self, hours: int = 24):
+    def get_stats(self,
+                  hours: int = 24,
+                  log_type: Optional[str] = None
+    ):
         cursor = self.conn.cursor()
 
-        cursor.execute("SELECT COUNT(*) as total FROM security_incidents")
-        total = cursor.fetchone()["total"]
+        where_clauses = []
+        params = []
 
         if hours and hours > 0:
-            time_filter = "WHERE created_at >= NOW() - INTERVAL '%s hours'" % hours
-            time_params = (hours, )
-            time_range_key = f"last_{hours}h"
-        else:
-            time_filter = ""
-            time_params = ()
-            time_range_key = "all_time"
+            where_clauses.append("created_at >= NOW() - INTERVAL %s")
+            params.append(f"{hours} hours")
 
-        query = f"SELECT COUNT(*) as total FROM security_incidents {time_filter}"
-        if time_params:
-            cursor.execute(query, time_params)
-        else:
-            cursor.execute(query)
+        if log_type:
+            where_clauses.append("log_type = %s")
+            params.append(log_type)
+
+        where_clause = ""
+        if where_clauses:
+            where_clauses = "WHERE " + " AND ".join(where_clauses)
+
+        cursor.execute(
+            f"SELECT COUNT(*) as total FROM security_incidents {where_clause}",
+            params
+        )
         total = cursor.fetchone()["total"]
 
-        # Filter by assigned severity
-        query = f"""
-            SELECT severity, COUNT(*) as count
-            FROM security_incidents
-            {time_filter}
-            GROUP BY severity
-            ORDER BY
-                CASE severity
-                    WHEN 'CRITICAL' THEN 1
-                    WHEN 'HIGH' THEN 2
-                    WHEN 'MEDIUM' THEN 3
-                    WHEN 'LOW' THEN 4
-                    WHEN 'INFO' THEN 5
-                    ELSE 6
-                END   
-        """
-        if time_params:
-            cursor.execute(query, time_params)
-        else:
-            cursor.execute(query)
+        cursor.execute(f"""
+                SELECT severity, COUNT(*) as count
+                FROM security_incidents
+                {where_clause}
+                GROUP BY severity
+                ORDER BY
+                    CASE severity
+                        WHEN 'CRITICAL' THEN 1
+                        WHEN 'HIGH' THEN 2
+                        WHEN 'MEDIUM' THEN 3)
+                        WHEN 'LOW' THEN 4
+                        WHEN 'INFO' THEN 5
+                        ELSE 6
+                    END
+            """, params)
         by_severity = {row["severity"]: row["count"] for row in cursor.fetchall()}
-
-        # Filter by log type
-        query = f"""
-            SELECT log_type, COUNT(*) as count
-            FROM security_incidents
-            {time_filter}
-            GROUP BY log_type
-        """
-        if time_params:
-            cursor.execute(query, time_params)
-        else:
-            cursor.execute(query)
+        
+        cursor.execute(f"""
+                SELECT log_type, COUNT(*) as count
+                FROM security_incidents
+                {where_clause}
+                GROUP BY log_type
+            """, params)
         by_log_type = {row["log_type"]: row["count"] for row in cursor.fetchall()}
         
         # Top source hosts
-        query = f"""
+        cursor.execute(f"""
             SELECT source_host, COUNT(*) as count
             FROM security_incidents
-            {time_filter}
+            {where_clause}
             GROUP BY source_host
             ORDER BY count DESC
             LIMIT 5
-        """
-        if time_params:
-            cursor.execute(query, time_params)
-        else:
-            cursor.execute(query)
+        """)
         top_hosts = [
             {"host": row["source_host"], "count": row["count"]}
             for row in cursor.fetchall()
@@ -189,6 +180,7 @@ class Database:
             "by_severity": by_severity,
             "by_log_type": by_log_type,
             "time_range_hours": hours if hours else None,
+            "log_type_filter": log_type,
             "top_source_hosts": top_hosts
         }
     
