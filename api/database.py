@@ -126,7 +126,7 @@ class Database:
 
         where_clause = ""
         if where_clauses:
-            where_clauses = "WHERE " + " AND ".join(where_clauses)
+            where_clause = "WHERE " + " AND ".join(where_clauses)
 
         cursor.execute(
             f"SELECT COUNT(*) as total FROM security_incidents {where_clause}",
