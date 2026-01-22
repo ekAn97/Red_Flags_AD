@@ -168,7 +168,7 @@ async def get_incident(
 async def get_statistics(
     request: Request,
     hours: int = Query(24, ge=0, le=8760, description = "Time range in hours (0 for all-time, max 8760 = 1 year)")
-)
+):
     try:
         stats = db.get_stats(
             hours=hours,
