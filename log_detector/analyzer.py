@@ -34,8 +34,10 @@ def analyzer(log_message: str, log_type: str):
     prompt = prompt_template.format(log_message = log_message)
 
     try:
+        HOST = os.getenv("OLLAMA_HOST")
+        PORT = os.getenv("OLLAMA_PORT")
         response = requests.post(
-            f"{config.OLLAMA_HOST}/api/generate",
+            f"http://{HOST}:{PORT}/api/generate",
             json={
                 "model": config.OLLAMA_MODEL,
                 "prompt": prompt,
