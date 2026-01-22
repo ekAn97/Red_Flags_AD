@@ -143,7 +143,7 @@ class Database:
                     CASE severity
                         WHEN 'CRITICAL' THEN 1
                         WHEN 'HIGH' THEN 2
-                        WHEN 'MEDIUM' THEN 3)
+                        WHEN 'MEDIUM' THEN 3
                         WHEN 'LOW' THEN 4
                         WHEN 'INFO' THEN 5
                         ELSE 6
