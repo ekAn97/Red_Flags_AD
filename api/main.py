@@ -20,11 +20,17 @@ app = FastAPI(
     redoc_url = "/redoc"
 )
 
-origins = ["*"]
+origins = [
+    "http://localhost",
+    "http://127.0.0.1",
+    "http://localhost:7274",
+    "http://192.168.6.123:7274",
+    "https://redflags.iee.ihu.gr",
+]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,   
-    allow_credentials=False,
+    allow_credentials=True,
     allow_methods=["*"],     
     allow_headers=["*"],
 )
@@ -265,6 +271,7 @@ async def shutdown_event():
     db.close()
 
 # Run with: uvicorn main:app --host 0.0.0.0 --port 8000
+
 
 
 
