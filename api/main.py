@@ -25,7 +25,7 @@ origins = [
     "http://127.0.0.1",
     "http://localhost:7274",
     "http://192.168.6.123:7274",
-    "https://redflags.iee.ihu.gr",
+    "https://redflags.iee.ihu.gr/",
 ]
 app.add_middleware(
     CORSMiddleware,
@@ -271,6 +271,7 @@ async def shutdown_event():
     db.close()
 
 # Run with: uvicorn main:app --host 0.0.0.0 --port 8000
+
 
 
 
