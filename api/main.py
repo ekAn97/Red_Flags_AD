@@ -26,6 +26,7 @@ origins = [
     "http://localhost:7274",
     "http://192.168.6.123:7274",
     "https://redflags.iee.ihu.gr",
+    "https://api.redflags.iee.ihu.gr",
     "https://ventricular-ariah-burly.ngrok-free.dev",
 ]
 app.add_middleware(
@@ -272,6 +273,7 @@ async def shutdown_event():
     db.close()
 
 # Run with: uvicorn main:app --host 0.0.0.0 --port 8000
+
 
 
 
