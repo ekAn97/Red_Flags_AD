@@ -43,6 +43,7 @@ services:
     tty: true
     networks:
       - log_network
+    restart: unless-stopped
 
   ollama:
     image: ollama/ollama:latest
@@ -73,6 +74,7 @@ services:
         wait
     networks:
       - log_network
+    restart: unless-stopped
 
   log_detector:
     build:
