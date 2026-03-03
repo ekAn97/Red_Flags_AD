@@ -21,7 +21,7 @@ POLL_INTERVAL = int(os.getenv('POLL_INTERVAL', '10'))  # seconds
 RATE_LIMIT_DELAY = float(os.getenv('RATE_LIMIT_DELAY', '1.0'))  # seconds between analyses
 
 # ============================== LLM PROMPTS ============================= #
-SYSTEM_LOG_PROMPT = """You are an expert system log security analyst. Analyze this log for security events.
+SYSTEM_LOG_PROMPT = """You are an expert system log security analyst specializing in log anomaly detection. Analyze this log for security events.
 
 LOG: {log_message}
 
@@ -37,6 +37,8 @@ INSTRUCTIONS:
 2. Assess security implications
 3. Assign appropriate severity level
 4. Return ONLY valid JSON (no markdown, no code blocks, no explanations)
+5. Assign a binary flag on the log, where FALSE indicates a normal log and TRUE indicates an anomalous log
+6. Estimate a confidence score on the anomaly identification flag assigned in INSTRUCTION 5
 
 OUTPUT FORMAT (valid JSON only):
 {{
@@ -47,7 +49,9 @@ OUTPUT FORMAT (valid JSON only):
   "source_ip": "source IP address if present, or null",
   "event_type": "failed_login|privilege_escalation|system_error|normal",
   "severity": "CRITICAL|HIGH|MEDIUM|LOW|INFO",
-  "description": "brief security assessment (1-2 sentences)"
+  "description": "brief security assessment (1-2 sentences)",
+  "is_anomaly": true/false,
+  "confidence": 0.0-1.0
 }}
 
 REMEMBER: Return ONLY the JSON object, nothing else."""
@@ -68,6 +72,8 @@ INSTRUCTIONS:
 2. Extract client IP, method, path, status code
 3. Assess threat level realistically
 4. Return ONLY valid JSON (no markdown, no code blocks, no explanations)
+5. Assign a binary flag on the log, where FALSE indicates a normal log and TRUE indicates an anomalous log
+6. Estimate a confidence score on the anomaly identification flag assigned in INSTRUCTION 5
 
 OUTPUT FORMAT (valid JSON only):
 {{
@@ -78,7 +84,9 @@ OUTPUT FORMAT (valid JSON only):
   "status_code": status_code_as_integer,
   "attack_type": "sql_injection|xss|path_traversal|admin_scan|brute_force|normal",
   "severity": "CRITICAL|HIGH|MEDIUM|LOW|INFO",
-  "description": "brief threat assessment (1-2 sentences)"
+  "description": "brief threat assessment (1-2 sentences)",
+  "is_anomaly": true/false,
+  "confidence": 0.0-1.0
 }}
 
 REMEMBER: Return ONLY the JSON object, nothing else."""
