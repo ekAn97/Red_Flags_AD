@@ -221,7 +221,8 @@ async def extract_attack_patterns(
     request: Request,
     hours: int = Query(4, ge=1, le=168, description = "Hours to analyze"),
     log_type: Optional[str] = Query(None, description="Filter by log type (system/web)"),
-    severity: Optional[str] = Query(None, description="Filter by severity (CRITICAL/HIGH/MEDIUM/LOW/INFO)")
+    severity: Optional[str] = Query(None, description="Filter by severity (CRITICAL/HIGH/MEDIUM/LOW/INFO)"),
+    anomaly_only: bool = Query(False, description="Extract only anomalous logs, if selected")
 ):
     """
     Extract templates for security incidents using the Drain3 parser
@@ -238,7 +239,8 @@ async def extract_attack_patterns(
         logs = db.get_incidents_by_timerange(
             hours = hours,
             log_type = log_type,
-            severity = severity
+            severity = severity,
+            anomaly_only = anomaly_only
         )
         if not logs:
             return {
@@ -259,6 +261,7 @@ async def extract_attack_patterns(
             "log_type": log_type,
             "severity": severity
         }
+        results["anomaly_only"] = anomaly_only
 
         return results
     

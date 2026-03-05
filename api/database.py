@@ -69,7 +69,8 @@ class Database:
             self,
             hours: int = 2,
             log_type: Optional[str] = None,
-            severity: Optional[str] = None
+            severity: Optional[str] = None,
+            anomaly_only: bool = False
     ):
         cursor = self.conn.cursor()
 
@@ -87,6 +88,9 @@ class Database:
         if severity:
             query += " AND severity = %s"
             params.append(severity)
+        
+        if anomaly_only:
+            query += " AND (analysis_result->>'is_anomaly')::boolean = TRUE"
         
         query += " ORDER BY created_at ASC"
 
