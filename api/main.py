@@ -179,15 +179,12 @@ async def get_analyzed_logs(
     flag: Optional[str] = Query(None, description="Filter by flag: Benign | For Investigation | Potential Threat")
 ):
     try:
-        date_from = datetime.now() - timedelta(hours=hours) if hours else None
-
         logs = db.get_analyzed_logs(
             limit=limit,
             offset=offset,
             severity=severity,
             log_type=log_type,
             source_host=source_host,
-            date_from=date_from,
             flag=flag,
         )
 
