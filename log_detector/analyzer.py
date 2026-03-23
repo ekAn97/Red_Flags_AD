@@ -8,7 +8,7 @@ from postgre_store import PostgresStorage
 import config
 
 def wait_for_ollama():
-    TIMEOUT = os.getenv("OLLAMA_TIMEOUT")
+    TIMEOUT = int(os.getenv("OLLAMA_TIMEOUT", "180"))
     HOST = os.getenv("OLLAMA_HOST")
     PORT = os.getenv("OLLAMA_PORT")
     print("Waiting for Ollama...")
