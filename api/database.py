@@ -222,7 +222,105 @@ class Database:
         cursor.close()
 
         return results
-    
+
+    def get_analyzed_logs(
+            self,
+            limit: int = 20,
+            offset: int = 0,
+            severity: Optional[str] = None,
+            log_type: Optional[str] = None,
+            source_host: Optional[str] = None,
+            flag: Optional[str] = None
+    ):
+        SEVERITY_TO_FLAG = {
+            "CRITICAL": "Potential Threat",
+            "HIGH": "Potential Threat",
+            "MEDIUM": "For Investigation",
+            "LOW": "Benign",
+            "INFO": "Benign"
+        }
+
+        FLAG_TO_SEVERITIES = {
+            "potential threat": ("CRITICAL", "HIGH"),
+            "for investigation": ("MEDIUM",),
+            "benign": ("LOW", "INFO")
+        }
+
+        cursor = self.conn.cursor()
+
+        query = """
+            SELECT
+                id,
+                created_at,
+                event_timestamp,
+                log_type,
+                source_host,
+                raw_log_message,
+                severity,
+                analysis_result
+            FROM security_incidents
+            WHERE 1=1
+        """
+        params = []
+
+        if flag and not severity:
+            matched = FLAG_TO_SEVERITIES.get(flag.lower())
+            if matched:
+                placeholders = ", ".join(["%s"] * len(matched))
+                query += f" AND severity IN ({placeholders})"
+                params.extend(matched)
+
+        if severity:
+            query += " AND severity = %s"
+            params.append(severity.upper())
+
+        if log_type:
+            query += " AND log_type = %s"
+            params.append(log_type)
+
+        if source_host:
+            query += " AND source_host = %s"
+            params.append(source_host)
+
+        query += " ORDER BY created_at DESC"
+        limit = min(limit, 100)
+        query += " LIMIT %s OFFSET %s"
+        params.extend([limit, offset])
+
+        cursor.execute(query, params)
+        rows = cursor.fetchall()
+        cursor.close()
+
+        results = []
+        for row in rows:
+            sev = (row["severity"] or "UNKNOWN").upper()
+            analysis  = row["analysis_result"] or {}
+            alert_flag = SEVERITY_TO_FLAG.get(sev, "Benign")
+
+            results.append({
+                "id":              row["id"],
+                "created_at":      row["created_at"].isoformat() if row["created_at"] else None,
+                "event_timestamp": row["event_timestamp"].isoformat() if row["event_timestamp"] else None,
+                "log_type":        row["log_type"],
+                "source_host":     row["source_host"],
+                "raw_log_message": row["raw_log_message"],
+                "severity":        sev,
+                "alert_flag":      alert_flag,
+                "llm_explanation": analysis.get("description"),
+                "analysis": {
+                    "is_anomaly":  analysis.get("is_anomaly"),
+                    "confidence":  analysis.get("confidence"),
+                    # system logs → event_type, web logs → attack_type
+                    "event_type":  analysis.get("event_type") or analysis.get("attack_type"),
+                    "source_ip":   analysis.get("source_ip"),
+                    "hostname":    analysis.get("hostname"),
+                    "service":     analysis.get("service"),
+                    "user":        analysis.get("user"),
+                }
+            })
+
+        return results
+
     def close(self):
         if self.conn:
             self.conn.close()

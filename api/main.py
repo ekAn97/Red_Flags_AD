@@ -165,7 +165,46 @@ async def get_incident(
         raise
     except Exception as e:  # ← Missing except block!
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
-        
+
+@app.get("/analyzed-logs")
+@limiter.limit("100/minute")
+async def get_analyzed_logs(
+    request: Request,
+    limit: int = Query(20, ge=1, le=100, description="Number of results (max 100)"),
+    offset: int = Query(0, ge=0, description="Skip N results (pagination)"),
+    severity: Optional[str] = Query(None, description="Filter by severity: CRITICAL | HIGH | MEDIUM | LOW | INFO"),
+    log_type: Optional[str] = Query(None, description="Filter by log type: system | web"),
+    source_host: Optional[str] = Query(None, description="Filter by source host"),
+    hours: Optional[int] = Query(None, ge=1, le=8760, description="Last N hours"),
+    flag: Optional[str] = Query(None, description="Filter by flag: Benign | For Investigation | Potential Threat")
+):
+    try:
+        logs = db.get_analyzed_logs(
+            limit=limit,
+            offset=offset,
+            severity=severity,
+            log_type=log_type,
+            source_host=source_host,
+            flag=flag,
+        )
+
+        return {
+            "total_returned": len(logs),
+            "limit":          limit,
+            "offset":         offset,
+            "filters": {
+                "severity":    severity,
+                "log_type":    log_type,
+                "source_host": source_host,
+                "hours":       hours,
+                "flag":        flag,
+            },
+            "logs": logs,
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
 @app.get("/statistics")
 @limiter.limit("100/minute")
 async def get_statistics(
