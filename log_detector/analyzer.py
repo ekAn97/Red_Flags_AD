@@ -35,7 +35,7 @@ def wait_for_ollama():
                 "prompt": "ping",
                 "stream": False
             },
-            timeout=180  # allow full cold load
+            timeout=config.OLLAMA_TIMEOUT  # allow full cold load
         )
         print(f"✓ Ollama ready with {config.OLLAMA_MODEL}")
         return True
