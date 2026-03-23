@@ -9,6 +9,7 @@ import config
 
 def wait_for_ollama():
     print("Waiting for Ollama...")
+    print(f"Timeout: {config.OLLAMA_TIMEOUT}sec")
     HOST = os.getenv("OLLAMA_HOST")
     PORT = os.getenv("OLLAMA_PORT")
 
