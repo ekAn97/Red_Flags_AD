@@ -48,6 +48,8 @@ services:
   ollama:
     image: ollama/ollama:latest
     container_name: detector-ollama
+    environment:
+      - OLLAMA_KEEP_ALIVE=-1
     volumes:
       - ollama_data:/root/.ollama
     ports:
