@@ -19,6 +19,16 @@ def wait_for_ollama():
                 models = response.json().get('models', [])
                 if any(config.OLLAMA_MODEL in m['name'] for m in models):
                     print(f"✓ Ollama ready with {config.OLLAMA_MODEL}")
+                    requests.post(
+                        f"http://{HOST}:{PORT}/api/generate",
+                        json={
+                            "model": config.OLLAMA_MODEL,
+                            "prompt": "ping",
+                            "stream": False
+                        },
+                        timeout=180  # allow full cold load
+                    )
+                    print(f"✓ Ollama ready with {config.OLLAMA_MODEL}")
                     return True
         except:
             pass
