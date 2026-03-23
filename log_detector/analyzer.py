@@ -8,10 +8,11 @@ from postgre_store import PostgresStorage
 import config
 
 def wait_for_ollama():
-    print("Waiting for Ollama...")
-    print(f"Timeout: {config.OLLAMA_TIMEOUT}sec")
+    TIMEOUT = os.getenv("OLLAMA_TIMEOUT")
     HOST = os.getenv("OLLAMA_HOST")
     PORT = os.getenv("OLLAMA_PORT")
+    print("Waiting for Ollama...")
+    print(f"Timeout: {config.OLLAMA_TIMEOUT}sec")
 
     for attempt in range(60):
         try:
@@ -36,7 +37,7 @@ def wait_for_ollama():
                 "prompt": "ping",
                 "stream": False
             },
-            timeout=config.OLLAMA_TIMEOUT  # allow full cold load
+            timeout=TIMEOUT  # allow full cold load
         )
         print(f"✓ Ollama ready with {config.OLLAMA_MODEL}")
         return True
