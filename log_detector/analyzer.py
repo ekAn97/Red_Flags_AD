@@ -9,35 +9,39 @@ import config
 
 def wait_for_ollama():
     print("Waiting for Ollama...")
+    HOST = os.getenv("OLLAMA_HOST")
+    PORT = os.getenv("OLLAMA_PORT")
 
     for attempt in range(60):
         try:
-            HOST = os.getenv("OLLAMA_HOST")
-            PORT = os.getenv("OLLAMA_PORT")
             response = requests.get(f"http://{HOST}:{PORT}/api/tags", timeout=5)
             if response.status_code == 200:
                 models = response.json().get('models', [])
                 if any(config.OLLAMA_MODEL in m['name'] for m in models):
-                    print(f"✓ Ollama ready with {config.OLLAMA_MODEL}")
-                    requests.post(
-                        f"http://{HOST}:{PORT}/api/generate",
-                        json={
-                            "model": config.OLLAMA_MODEL,
-                            "prompt": "ping",
-                            "stream": False
-                        },
-                        timeout=180  # allow full cold load
-                    )
-                    print(f"✓ Ollama ready with {config.OLLAMA_MODEL}")
-                    return True
-        except:
-            pass
-        
-        print(f" Attempt {attempt + 1 }/60...")
-        time.sleep(2)
+                    print(f"✓ Ollama model found, warming up...")
+                    break
+        except Exception as e:
+            print(f" Attempt {attempt + 1}/60... ({e})")
+            time.sleep(2)
+    else:
+        print("Ollama timeout waiting for model")
+        return False
 
-    print("Ollama timeout")
-    return False
+    try:                    
+        requests.post(
+            f"http://{HOST}:{PORT}/api/generate",
+            json={
+                "model": config.OLLAMA_MODEL,
+                "prompt": "ping",
+                "stream": False
+            },
+            timeout=180  # allow full cold load
+        )
+        print(f"✓ Ollama ready with {config.OLLAMA_MODEL}")
+        return True
+    except Exception as e:        
+        print(f" Warmup failed: {e}")
+        return False
 
 def analyzer(log_message: str, log_type: str):
     prompt_template = config.get_prompt_for_log_type(log_type)
