@@ -91,6 +91,7 @@ services:
       POSTGRES_HOST: ${POSTGRES_HOST}
       OLLAMA_HOST: ${OLLAMA_HOST}
       OLLAMA_PORT: ${OLLAMA_PORT} 
+      OLLAMA_TIMEOUT: ${OLLAMA_TIMEOUT}
     volumes:
       - aggregated_logs:/aggregated_logs:ro
     depends_on:
